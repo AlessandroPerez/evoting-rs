@@ -22,16 +22,16 @@ Given some election parameters (1.4), the registration authorities (Registration
 
 ```mermaid
 sequenceDiagram
-    autonumber
+    %%autonumber
     participant TT as Tabulation Teller
     participant ER as Electoral Roll
     participant RT as Registration Teller
     participant WBB as Bulletin Board
-    TT->>ER: 1a: Vote-encryption public key
-    RT->>ER: 1b: Registration public key
-    ER->>WBB: 1c: Number of eligible voters, election public keys
-    WBB->>RT: 1d: Number of eligible voters, election public keys
-    RT->>WBB: 1e: publish public ACCs
+    TT->>ER: 1a: Send Vote-Encryption Public Key
+    RT->>ER: 1b: Send Registration Public Key
+    ER->>WBB: 1c: Publish number of eligible voters, election public keys
+    WBB->>RT: 1d: Get number of eligible voters, election public keys
+    RT->>WBB: 1e: Publish Public ACCs
 ```
 
 #### 2. Enrollment
@@ -44,17 +44,17 @@ The authorities also send a DVNIZKP, so that voters can verify the validity of t
 
 ```mermaid
 sequenceDiagram
-    autonumber
+    %%autonumber
     actor V as Voter
     participant VD as Voting Device
     participant ER as Electoral Roll
     participant RT as Registration Teller
     participant WBB as Bulletin Board
-    WBB->>VD: 2a: Election public keys
+    WBB->>VD: 2a: Get election public keys
     V->>VD: 2b: Authentication
     VD<<->>ER: 2c: Authentication
-    RT->>VD: 2d: Voter ACC
-    V<<->>VD: 2e: Display and verify PIN
+    VD<<->>RT: 2d: Authenticated delivery of Voter ACC
+    VD<<->>V: 2e: Display and verify PIN
 ```
 
 #### 3. Credential Management
@@ -67,13 +67,13 @@ Both ruse PINs and reminders (3.2) are delivered and displayed exactly as in pha
 
 ```mermaid
 sequenceDiagram
-    autonumber
+    %%autonumber
     actor V as Voter
     participant VD as Voting Device
     participant RT as Registration Teller
-    V<<->>VD: 3a: Request PIN reminder, set up ruse PIN
-    VD<<->>RT: 3b: PIN reminder, ruse PIN
-    V<<->>VD: 3c: Display and verify PIN reminder, Display and verify ruse PIN
+    V->>VD: 3a: Request PIN reminder / set up Ruse PIN
+    VD<<->>RT: 3b: Authenticated delivery of PIN reminder / Ruse PIN
+    V<<->>VD: 3c: Display and verify PIN reminder / ruse PIN
 ```
 
 #### 4. Voting
@@ -95,10 +95,10 @@ sequenceDiagram
     participant VD as Voting Device
     participant BB as Ballot Box
     participant WBB as Bulletin Board
-    V->>VD: 4a: Vote with PIN
-    VD->>VD: 4b: Encrypt ballot
-    VD->>BB: 4c: Encrypted ballot
-    BB->>WBB: 4d: Encrypted ballot public hash
+    V->>VD: 4a: Vote with (Ruse) PIN
+    VD->>VD: 4b: Vote Encryption
+    VD->>BB: 4c: Send Encrypted Ballot
+    BB->>WBB: 4d: Publish Hash of Encrypted Ballot
 ```
 
 #### 5. Tallying
@@ -115,10 +115,10 @@ sequenceDiagram
     participant BB as Ballot Box
     participant WBB as Bulletin Board
     participant TT as Tabulation Teller
-    BB->>WBB: 5a: Encrypted ballots
-    WBB->>TT: 5b: Encrypted ballots
+    BB->>WBB: 5a: Publish Encrypted Ballots
+    WBB->>TT: 5b: Get Encrypted Ballots
     TT->>TT: 5c: Tallying
-    TT->>WBB: 5d: Election result with proof of correctness
+    TT->>WBB: 5d: Publish election results with proofs of correctness
 ```
 
 ### Anti-Coercion Credentials (ACC)
