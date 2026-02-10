@@ -22,16 +22,16 @@ Given some election parameters (1.4), the registration authorities (Registration
 
 ```mermaid
 sequenceDiagram
-    %%autonumber
+    autonumber
     participant TT as Tabulation Teller
     participant ER as Electoral Roll
     participant RT as Registration Teller
     participant WBB as Bulletin Board
-    TT->>ER: 1a: Send Vote-Encryption Public Key
-    RT->>ER: 1b: Send Registration Public Key
-    ER->>WBB: 1c: Publish number of eligible voters, election public keys
-    WBB->>RT: 1d: Get number of eligible voters, election public keys
-    RT->>WBB: 1e: Publish Public ACCs
+    TT->>ER: Send Vote-Encryption Public Key
+    RT->>ER: Send Registration Public Key
+    ER->>WBB: Publish number of eligible voters, election public keys
+    WBB->>RT: Get number of eligible voters, election public keys
+    RT->>WBB: Publish Public ACCs
 ```
 
 #### 2. Enrollment
@@ -44,17 +44,17 @@ The authorities also send a DVNIZKP, so that voters can verify the validity of t
 
 ```mermaid
 sequenceDiagram
-    %%autonumber
+    autonumber
     actor V as Voter
     participant VD as Voting Device
     participant ER as Electoral Roll
     participant RT as Registration Teller
     participant WBB as Bulletin Board
-    WBB->>VD: 2a: Get election public keys
-    V->>VD: 2b: Authentication
-    VD<<->>ER: 2c: Authentication
-    VD<<->>RT: 2d: Authenticated delivery of Voter ACC
-    VD<<->>V: 2e: Display and verify PIN
+    WBB->>VD: Get election public keys
+    V->>VD: Authentication
+    VD<<->>ER: Authentication
+    VD<<->>RT: Authenticated delivery of Voter ACC
+    VD<<->>V: Display and verify PIN
 ```
 
 #### 3. Credential Management
@@ -67,7 +67,7 @@ Both ruse PINs and reminders (3.2) are delivered and displayed exactly as in pha
 
 ```mermaid
 sequenceDiagram
-    %%autonumber
+    autonumber
     actor V as Voter
     participant VD as Voting Device
     participant RT as Registration Teller
@@ -95,10 +95,10 @@ sequenceDiagram
     participant VD as Voting Device
     participant BB as Ballot Box
     participant WBB as Bulletin Board
-    V->>VD: 4a: Vote with (Ruse) PIN
-    VD->>VD: 4b: Vote Encryption
-    VD->>BB: 4c: Send Encrypted Ballot
-    BB->>WBB: 4d: Publish Hash of Encrypted Ballot
+    V->>VD: Vote with (Ruse) PIN
+    VD->>VD: Vote Encryption
+    VD->>BB: Send Encrypted Ballot
+    BB->>WBB: Publish Hash of Encrypted Ballot
 ```
 
 #### 5. Tallying
@@ -115,10 +115,10 @@ sequenceDiagram
     participant BB as Ballot Box
     participant WBB as Bulletin Board
     participant TT as Tabulation Teller
-    BB->>WBB: 5a: Publish Encrypted Ballots
-    WBB->>TT: 5b: Get Encrypted Ballots
-    TT->>TT: 5c: Tallying
-    TT->>WBB: 5d: Publish election results with proofs of correctness
+    BB->>WBB: Publish Encrypted Ballots
+    WBB->>TT: Get Encrypted Ballots
+    TT->>TT: Tallying
+    TT->>WBB: Publish election results with proofs of correctness
 ```
 
 ### Anti-Coercion Credentials (ACC)
@@ -147,17 +147,28 @@ If a decoy PIN is set up, a forged proof is created to verify the decoy credenti
 
 The code is structured around four explicit roles:
 
-**Client (Voter).**  
+- **Client (Voter).**  
 The client runs on the voter device and is responsible for all voter-side cryptography. It generates a voter key pair, receives a voting credential from the Registration Teller, constructs ballots with zero-knowledge proofs, and submits them to the bulletin board. The client can locally verify the correctness of the PIN associated with its credential. No plaintext vote information is ever revealed by the client.
 
-**Registration Teller (RT).**  
+- **Registration Teller (RT).**  
 The Registration Teller is trusted for eligibility but not for vote privacy. It issues PIN-bound voting credentials and produces credential control proofs that allow invalid or unauthorized ballots to be filtered later in the pipeline. The RT never learns voter choices and never decrypts votes.
 
-**Bulletin Board (BB).**  
+- **Bulletin Board (BB).**  
 The Bulletin Board acts as an append-only public log and hosts the public verification pipeline. It stores ballots together with deterministic receipts, verifies ballot proofs, performs vote and credential shuffles with zero-knowledge proofs, filters invalid ballots, enforces revoting semantics, and homomorphically aggregates encrypted votes. All BB computations are publicly verifiable and can be re-run independently by any observer, auditor, or authority.
 
-**Tabulation Teller (TT).**  
+- **Tabulation Teller (TT).**  
 The Tabulation Teller is trusted exclusively for decryption. It produces verifiable decryptions for credential validity checks, credential fingerprint matching, and final tally decryption. The TT outputs are publicly verifiable and can be checked by anyone.
+
+Two additional roles are present in the protocol design but have no corresponding functions in this library since they perform only standard cryptographic operations, typically available from other libraries e.g., OAuth:
+
+- Electoral Roll (ER)
+-- Authenticates voters, checks their eligibility to vote in the currently active contests.
+-- Issues pseudonymous authorization to receive voting credentials from RT.
+-- Issues Casting Access Tokens to limit the rate of requests that a client can make to send ballots, to mitigate against brute force attacks on PIN numbers.
+-- May be instanced as an OAuth Authorization Server. 
+
+- Ballot Box (BBox)
+Receives and stores ernctypted ballots, publishing their hash in the voting phase (4) and the full ballot in the Tallying phase (5).
 
 ## Performance measurements
 
@@ -172,12 +183,15 @@ The results show that the Bulletin Board dominates runtime. This is expected, as
 
 Importantly, this does not imply that voting is slow for users. Most BB work happens after voting has ended, is fully publicly verifiable, can be parallelized, and can be re-run offline by auditors. The reported measurements primarily reflect **audit and verification cost**, not online voting latency.
 
-## Limitations
+## Work in progress
 
-- centralized deployment (single RT, single TT)
-- no networking layer
-- no persistence beyond in-memory bulletin board
-- no threshold cryptography yet
+Threshold cryptography for multiple RT and TT remains to be implemented.
+
+The Bulletin Board currently persists data only in memory. A more robust solution with append-only guarantees is currently being planned.
+
+## Out of scope
+
+The present library only aims to implement the cryptographic functions of the voting system proper. The deployment of servers to expose this API as remote services is out of scope, including critical but more conventional identity and access management.
 
 ## Acknowledgements
 
@@ -203,18 +217,18 @@ secure voting system. *2008 IEEE Symposium on Security and Privacy*,
 [^ABRRTY10]: Araújo, R., Ben Rajeb, N., Robbana, R., Traoré, J., and Youssfi, S.
 (2010). Towards practical and secure coercion-resistant electronic
 elections. *Cryptology and Network Security*, 278–297.
-https://doi.org/10.1007/978-3-642-17619-7\\20
+https://doi.org/10.1007/978-3-642-17619-7_20
 
 [^AT13]: Araújo, R., and Traoré, J. (2013). A practical coercion resistant voting
 scheme revisited. *International Conference on e-Voting and Identity*,
-193–209. https://doi.org/10.1007/978-3-642-39185-9\\12
+193–209. https://doi.org/10.1007/978-3-642-39185-9_12
 
 [^dSA08]: dos Santos Araújo, R. S. (2008). *On remote and voter-verifiable
 voting* \[PhD thesis\]. Technische Universität Darmstadt.
 
 [^WZF05]: Wang, H., Zhang, Y., and Feng, D. (2005). Short threshold signature
 schemes without random oracles. *Progress in Cryptology - INDOCRYPT
-2005*, 297–310. https://doi.org/10.1007/11596219\\24
+2005*, 297–310. https://doi.org/10.1007/11596219_24
 
 [^JCJ10]: Juels, A., Catalano, D., and Jakobsson, M. (2010). Coercion-resistant
 electronic elections. In *Towards trustworthy elections* (Vol. 6000, pp.
