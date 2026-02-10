@@ -181,7 +181,7 @@ Importantly, this does not imply that voting is slow for users. Most BB work hap
 
 ## Acknowledgements
 
-This protocol has been developed in the context of a research project partly funded by the Italian national mint ([Istituto Poligrafico e Zecca dello Stato](https://www.ipzs.it/)) and adapted to the Italian electoral law for Italian citizens voting from abroad.
+This protocol has been developed in the context of a research project partly funded by the Italian national mint ([Istituto Poligrafico e Zecca dello Stato](https://www.ipzs.it/)).
 
 
 
