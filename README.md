@@ -82,7 +82,7 @@ Each voter expresses their preferences on their voting device and validates them
 
 The device creates an encrypted ballot (4.2) and casts it (4.3).
 
-For confirmation, a hash is published on a Web Bulletin Board (WBB) (4.4).
+For confirmation, a hash is published on a Bulletin Board (4.4).
 
 Each voter can simulate multiple votes by using their decoy PINs or express their real preference with their valid PIN.
 
@@ -161,14 +161,15 @@ The Tabulation Teller is trusted exclusively for decryption. It produces verifia
 
 Two additional roles are present in the protocol design but have no corresponding functions in this library since they perform only standard cryptographic operations, typically available from other libraries e.g., OAuth:
 
-- Electoral Roll (ER)
--- Authenticates voters, checks their eligibility to vote in the currently active contests.
--- Issues pseudonymous authorization to receive voting credentials from RT.
--- Issues Casting Access Tokens to limit the rate of requests that a client can make to send ballots, to mitigate against brute force attacks on PIN numbers.
--- May be instanced as an OAuth Authorization Server. 
+- **Electoral Roll (ER)**
+    - Authenticates voters, checks their eligibility to vote in the currently active contests. (2.3)
+    - Issues pseudonymous authorization tokens to receive voting credentials from RT. (2.3)
+    - Issues anonymous Casting Access Tokens to limit the rate of requests that a client can make to send ballots, to mitigate against brute force attacks on PIN numbers. (Not shown, between 4.3 and 4.4).
+    - May be instanced as an OAuth Authorization Server.
 
-- Ballot Box (BBox)
-Receives and stores ernctypted ballots, publishing their hash in the voting phase (4) and the full ballot in the Tallying phase (5).
+- **Ballot Box (BBox)**
+    - Receives and stores ernctypted ballots.
+    - Publishes encrypted ballot hash in the voting phase (4.4) and the full encrypted ballot in the Tallying phase (5.1).
 
 ## Performance measurements
 
@@ -232,4 +233,4 @@ schemes without random oracles. *Progress in Cryptology - INDOCRYPT
 
 [^JCJ10]: Juels, A., Catalano, D., and Jakobsson, M. (2010). Coercion-resistant
 electronic elections. In *Towards trustworthy elections* (Vol. 6000, pp.
-37–63). Springer. https://doi.org/10.1007/978-3-642-12980-3\\2
+37–63). Springer. https://doi.org/10.1007/978-3-642-12980-3_2
